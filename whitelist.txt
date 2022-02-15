@@ -1,3 +1,4 @@
+asdf
 caplog
 capsys
 cfg
@@ -17,7 +18,7 @@ filepath
 func
 iconfig
 isort
-IWUSR
+iwusr
 logformat
 loglevel
 makefile
@@ -25,11 +26,10 @@ metavar
 myproject
 namespaces
 onerror
-Params
+params
 pathlib
 pep3101
 posix
-POSIX
 pyscaffold
 pyscaffoldext
 readouterr

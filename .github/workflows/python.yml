@@ -9,28 +9,29 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-minorversion: ["8", "9"]
+        python-version: ["8", "9"]
 
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python 3.${{ matrix.python-minorversion }}
+      - name: Set up Python 3.${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
-          python-version: 3.${{ matrix.python-minorversion }}
+          python-version: 3.${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          python3.${{ matrix.python-minorversion }} -m pip install --upgrade pip
-          python3.${{ matrix.python-minorversion }} -m pip install --upgrade tox
+          python3 --version
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --upgrade tox
       - name: Test with tox
         run: |
-          python3.${{ matrix.python-minorversion }} -m tox -e win-format-check -e mac-format-check -e nix-format-check -e py3${{ matrix.python-minorversion }}-test -e py3${{ matrix.python-minorversion }}-flake8
+          python3 -m tox -e format-check -e py3${{ matrix.python-version }}-test -e py3${{ matrix.python-version }}-flake8
       - name: Build Python Wheels
         run: |
-          python3.${{ matrix.python-minorversion }} -m tox -e py3${{ matrix.python-minorverson }}-build
+          python3 -m tox -e py3${{ matrix.python-version }}-build
       - name: Upload built python
         uses: actions/upload-artifact@v2
         with:
-          name: py3${{ matrix.python-minorversion }}-artifacts
+          name: py3${{ matrix.python-version }}-artifacts
           path: |
             dist/silver_spork*.whl
             dist/silver-spork*.tar.gz
