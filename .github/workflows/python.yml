@@ -24,3 +24,10 @@ jobs:
       - name: Test with tox
         run: |
           python3 -m tox
+      - name: Upload built python
+        uses: actions/upload-artifact@v2
+        with:
+          name: python-artifacts
+          path: |
+            dist/silver_spork*.whl
+            dist/silver-spork*.tar.gz
