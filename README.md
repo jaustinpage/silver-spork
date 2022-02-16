@@ -2,10 +2,6 @@
 
 A service that returns the current time and a message
 
-## Description
-
-A longer description of your project goes here...
-
 ## Prerequisites
 
 - Python 3.6+
@@ -14,25 +10,44 @@ A longer description of your project goes here...
   # this needs to be done outside of a virtualenv, not inside
   pip install --upgrade pip
   ```
+- tox
+  ```shell
+  pip install --upgrade tox
+  ```
+- terraform installed
+- git
+- Github account (for github actions and to clone the repo)
+- AWS account (for deploying the service)
+- optional: aws cli
 
-## Install
+## Getting Started
 
-To Install and use this library:
+These steps only need to be done once on a new aws account.
 
+1. Create an aws account
+1. Clone this repo into your own account
+1. create a user in IAM with AdministratorAccess profile, and api keys
+1. Save the api keys
+1. configure aws access for your terminal (either using aws cli or environment variables)
+1. cd into terraform/init_new_account
+1. run `terraform init` 
+1. run `terraform plan` and review the changes. This is going to get terraform remote state working on your new aws account.
+1. run `terraform apply` to make the changes. at the end of the terraform run, save the "outputs", as we will need these to configure remote state for the main terraform config. NOTE: you may have to run apply multiple times to get it to finish. Seems to be a timing issue or dependency declaration that is missing.
+1. Store the terraform.tfstate that is created by the account initialization in a safe place. You will need it again if you decide to tear down the environment. It is generally a bad idea to store it in version control, as it contains secrets for aws. 
+1. cd into terraform/, copy the remote_state_config.tf.example file to remote_state_config.tf, and insert the values that you obtained when you initialized the remote state resources.
+
+
+## Building and running the flask app
 ```shell
 pip install --upgrade pip
 pip install git+ssh://github.com/jaustinpage/silver-spork#egg=silver-spork
+export FLASK_APP=silver_spork
+python3 -m flask run 
 ```
 
-Then, in your python script, you can use the library.
 
-```python
-import silver-spork
-silver-spork.<do something awesome>()
-```
 
-If you are using this library from another python library, dont forget to update your
-`setup.cfg` \[options\] install-requires section!
+# LEGACY INSTRUCTIONS BELOW - IGNORE
 
 ## Development Setup
 
@@ -123,31 +138,6 @@ At this point, I recommend using PyCharm to continue development.
 
 ##Repo/Library Management Tasks
 
-### First build
-
-You have just finished running PyScaffold jaustinpage. Follow these steps first. This
-only needs to be done for the library once.
-
-1. Make initial commit in new repo and build
-   ```shell
-   cd ~/github/silver-spork
-   rm -rf .git .github  # There is not a way to disable git in pyscaffold.
-   git add
-   git commit -m "Initial commit"
-   tox
-   git add docs
-   git commit -m "Post initial build commit"
-   git tag 0.0.1
-   ```
-1. Remove the `First Build` section from this file, commit, and push.
-   ```shell
-   cd ~/github/silver-spork
-   # use your favorite editor to remove the first build section
-   tox # make sure library still builds. If success: continue
-   git commit -m "Removing first build section from Readme.md"
-   git tag 0.0.2
-   git push
-   ```
 
 ### How to add a 3rd party (PyPi) runtime dependency
 
@@ -185,25 +175,6 @@ signatures)
    For example, if you want the current tip to be version 0.0.2, then `git tag 0.0.2`.
    Then push the tag.
 
-### Updating repository boilerplate files
-
-```shell
-# Get latest boilerplate
-pip install --update git+ssh://github.com/jaustinpage/pyscaffoldext-jaustinpage#egg=pyscaffoldext-jaustinpage
-# Make a commit
-cd pyscaffold-jaustinpage
-git add .
-git commit -m "Preparing to update boilerplate"
-# Update boilerplate
-putup --update
-# Make sure the build is good
-tox
-# Commit new files
-git add
-git commit -m "Updating boilerplate."
-git tag <new package version>
-git push
-```
 
 <!-- pyscaffold-notes -->
 

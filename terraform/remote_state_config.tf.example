@@ -1,0 +1,17 @@
+terraform {
+  required_providers {
+    aws = {
+      source = "hashicorp/aws"
+      version = "~> 4.1.0"
+    }
+  }
+  required_version = ">= 0.14.9"
+  backend "s3" {
+    bucket = "<MY BUCKET>
+    key = "core/terraform.tfstate"
+    region = "us-east-2
+    encrypt = true
+    kms_key_id = "<MY  KMS KEY ID>"
+    dynamodb_table = "tf-remote-state-lock"
+  }
+}
