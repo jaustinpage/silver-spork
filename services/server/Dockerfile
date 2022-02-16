@@ -11,6 +11,6 @@ RUN pip3 install --find-links /usr/src/app/wheels/ silver-spork
 
 ENV FLASK_APP=silver_spork
 # run server
-CMD ["python3", "-m", "flask", "run"]
+CMD ["python3", "-m", "flask", "run", "--host=0.0.0.0"]
 EXPOSE 5000
 
