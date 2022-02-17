@@ -56,11 +56,12 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: terraform/
+        working-directory: ${{ env.tf_actions_working_dir }}
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: us-east-2
+      tf_actions_working_dir: terraform/
     steps:
       - uses: actions/checkout@v2
       - uses: hashicorp/setup-terraform@v1
@@ -98,8 +99,35 @@ jobs:
             const pr = context.issue.number || issues.data[0].number
 
             const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+
+            <details><summary>Show Formatting</summary>
+            
+            \`\`\`\n
+            ${{ steps.fmt.outputs.stdout }}
+            \`\`\`
+            
+            </details>
+
             #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
-            #### Terraform Validation 🤖\`${{ steps.validate.outputs.stdout }}\`
+            
+            <details><summary>Show Formatting</summary>
+            
+            \`\`\`\n
+            ${{ steps.init.outputs.stdout }}
+            \`\`\`
+            
+            </details>
+
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            
+            <details><summary>Show Formatting</summary>
+            
+            \`\`\`\n
+            ${{ steps.validate.outputs.stdout }}
+            \`\`\`
+            
+            </details>
+
             #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
             
             <details><summary>Show Plan</summary>
