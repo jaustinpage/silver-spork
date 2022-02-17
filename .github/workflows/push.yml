@@ -110,7 +110,7 @@ jobs:
 
             #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
             
-            <details><summary>Show Formatting</summary>
+            <details><summary>Show Initialization</summary>
             
             \`\`\`\n
             ${{ steps.init.outputs.stdout }}
@@ -120,7 +120,7 @@ jobs:
 
             #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
             
-            <details><summary>Show Formatting</summary>
+            <details><summary>Show Validation</summary>
             
             \`\`\`\n
             ${{ steps.validate.outputs.stdout }}
