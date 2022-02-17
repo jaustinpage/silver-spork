@@ -34,7 +34,7 @@ These steps only need to be done once on a new aws account.
 1. run `terraform plan` and review the changes. This is going to get terraform remote state working on your new aws account.
 1. run `terraform apply` to make the changes. at the end of the terraform run, save the "outputs", as we will need these to configure remote state for the main terraform config. NOTE: you may have to run apply multiple times to get it to finish. Seems to be a timing issue or dependency declaration that is missing.
 1. Store the terraform.tfstate that is created by the account initialization in a safe place. You will need it again if you decide to tear down the environment. It is generally a bad idea to store it in version control, as it contains secrets for aws. 
-1. cd into terraform/, copy the remote_state_config.tf.example file to remote_state_config.tf, and insert the values that you obtained when you initialized the remote state resources.
+1. cd into terraform/, edit remote_state_config.tf, and insert the values that you obtained when you initialized the remote state resources.
 
 
 ## Building and running the flask app

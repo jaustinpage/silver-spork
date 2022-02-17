@@ -534,6 +534,14 @@ resource "aws_s3_bucket_public_access_block" "state" {
   restrict_public_buckets = true
 }
 
+resource "aws_s3_object" "core_folder" {
+  bucket = aws_s3_bucket.state.id
+  acl = "private"
+  key = "core/"
+  content_type = "application/x-directory"
+  kms_key_id = aws_kms_key.this.arn
+}
+
 output "backend_s3_bucket" {
   description = "The s3 bucket for terraform remote state"
   value       = aws_s3_bucket.state.id
@@ -541,7 +549,7 @@ output "backend_s3_bucket" {
 
 output "backend_s3_key" {
   description = "The key to use for s3 remote state"
-  value       = "core/terraform.tfstate"
+  value       = "${aws_s3_object.core_folder.key}terraform.tfstate"
 }
 
 output "backend_s3_region" {
@@ -562,5 +570,5 @@ output "backend_s3_dynamodb_table" {
 
 output "backend_s3_kms_key_id" {
   description = "The kms key to use for encrypting bucket remote state"
-  value       = aws_kms_key.this.arn
+  value       = aws_kms_key.this.id
 }
