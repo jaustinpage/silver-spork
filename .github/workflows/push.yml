@@ -118,4 +118,7 @@ jobs:
               repo: context.repo.repo,
               body: output
             })
+      - name: Report Status
+        run: |
+          if [[ "${{steps.fmt.outcome}}" == "success" && "${{steps.init.outcome}}" == "success" && "${{steps.validate.outcome}}" == "success" && "${{steps.plan.outcome}}" == "success" ]]; then exit 0; else exit 1; fi
 
