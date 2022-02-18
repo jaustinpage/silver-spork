@@ -60,7 +60,7 @@ jobs:
         id: kubeconfig
         run: |
           aws eks --region us-east-2 update-kubeconfig --name eg-test-eks-fargate-cluster
-          echo '::set-output name=kubeconfig::$(cat $HOME/.kube/config|base64)'
+          echo "::set-output name=kubeconfig::$(cat $HOME/.kube/config|base64)"
 
           
       - name: Deploy to kubernetes cluster
@@ -94,7 +94,7 @@ jobs:
       - name: main branch hash
         id: main-sha
         run: |
-          echo '::set-output name=SHA::$(git log -n 1 --pretty=format:"%H" refs/remotes/origin/main)'
+          echo "::set-output name=SHA::$(git log -n 1 --pretty=format:%H refs/remotes/origin/main)"
       - name: Get specific changed files
         id: python-app-files
         uses: tj-actions/changed-files@v16
