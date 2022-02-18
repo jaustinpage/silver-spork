@@ -54,11 +54,9 @@ module "eks_cluster" {
 # Otherwise, EKS will create the ConfigMap first and add the managed node role ARNs to it,
 # and the kubernetes provider will throw an error that the ConfigMap already exists (because it can't update the map, only create it).
 # If we create the ConfigMap first (to add additional roles/users/accounts), EKS will just update it by adding the managed node role ARNs.
-data "null_data_source" "wait_for_cluster_and_kubernetes_configmap" {
-  inputs = {
-    cluster_name             = module.eks_cluster.eks_cluster_id
-    kubernetes_config_map_id = module.eks_cluster.kubernetes_config_map_id
-  }
+locals {
+  cluster_name             = module.eks_cluster.eks_cluster_id
+  kubernetes_config_map_id = module.eks_cluster.kubernetes_config_map_id
 }
 
 module "eks_node_group" {
@@ -70,7 +68,7 @@ module "eks_node_group" {
   desired_size      = var.desired_size
   min_size          = var.min_size
   max_size          = var.max_size
-  cluster_name      = data.null_data_source.wait_for_cluster_and_kubernetes_configmap.outputs["cluster_name"]
+  cluster_name      = local.cluster_name
   kubernetes_labels = var.kubernetes_labels
 
   context = module.label.context
@@ -80,7 +78,7 @@ module "eks_fargate_profile" {
   source = "cloudposse/eks-fargate-profile/aws"
 
   subnet_ids                              = module.subnets.private_subnet_ids
-  cluster_name                            = data.null_data_source.wait_for_cluster_and_kubernetes_configmap.outputs["cluster_name"]
+  cluster_name                            = local.cluster_name
   kubernetes_namespace                    = var.kubernetes_namespace
   kubernetes_labels                       = var.kubernetes_labels
   iam_role_kubernetes_namespace_delimiter = var.iam_role_kubernetes_namespace_delimiter
