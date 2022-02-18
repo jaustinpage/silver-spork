@@ -50,10 +50,11 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: silver-spork
-          IMAGE_TAG: nodejs_demo_image
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA -f services/server/Dockerfile dist/
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
+          python3 -m pip install --upgrade arrow boto3 botocore click docker gitpython
+          python3 scripts/upload_image_to_ecr.py --image silver-spork pull || true
+          docker build --cache-from=silver-spark:latest --tag $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA --tag $ECR_REGISTRY/$ECR_REPOSITORY:latest -f services/server/Dockerfile dist/
+          python3 scripts/upload_image_to_ecr.py --image silver-spork push
 
   py-platform-check:
     runs-on: ${{matrix.os}}
