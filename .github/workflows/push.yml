@@ -223,5 +223,5 @@ jobs:
           if [[ "${{steps.fmt.outcome}}" == "success" && "${{steps.init.outcome}}" == "success" && "${{steps.validate.outcome}}" == "success" && "${{steps.plan.outcome}}" == "success" ]]; then exit 0; else exit 1; fi
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.terraform-files.outputs.any_changed == 'true'
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform -chdir=terraform/ apply -auto-approve
