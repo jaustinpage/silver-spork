@@ -85,3 +85,10 @@ module "eks_fargate_profile" {
 
   context = module.label.context
 }
+
+module "ecr" {
+  source                 = "cloudposse/ecr/aws"
+  context                = module.label.context
+  principals_full_access = [module.eks_cluster.eks_cluster_role_arn]
+  image_names            = ["silver-spork"]
+}
