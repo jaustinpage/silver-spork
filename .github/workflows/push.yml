@@ -1,0 +1,227 @@
+name: Python
+
+on: [push, workflow_dispatch]
+
+jobs:
+  py-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Install dependencies
+        run: |
+          python3 --version
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --upgrade tox
+      - name: Test with tox
+        run: |
+          python3 -m tox -e format-check -e py39-test -e py39-flake8
+      - name: Build Python Wheels
+        run: |
+          python3 -m tox -e py39-build
+      - name: Upload built python
+        uses: actions/upload-artifact@v2
+        with:
+          name: app-artifacts 
+          path: |
+            dist/silver_spork*.whl
+            dist/silver-spork*.tar.gz
+
+  py-platform-check:
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["8", "9"]
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: main branch hash
+        id: main-sha
+        run: |
+          echo '::set-output name=SHA::$(git log -n 1 --pretty=format:"%H" refs/remotes/origin/main)'
+      - name: Get specific changed files
+        id: python-app-files
+        uses: tj-actions/changed-files@v16
+        with:
+          base_sha: ${{ steps.main-sha.outputs.SHA }}
+          files: |
+            src/**/*.py
+            tests/*.py
+            tests/**/*.py
+
+      - name: Set up Python 3.${{ matrix.python-version }}
+        if: steps.python-app-files.outputs.any_changed == 'true'
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.${{ matrix.python-version }}
+      - name: Install dependencies
+        if: steps.python-app-files.outputs.any_changed == 'true'
+        run: |
+          python3 --version
+          python3 -m pip install --upgrade pip
+          python3 -m pip install --upgrade tox
+      - name: Test with tox
+        if: steps.python-app-files.outputs.any_changed == 'true'
+        run: |
+          python3 -m tox -e py3${{ matrix.python-version }}-test
+
+
+  terraform:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-2
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: main branch hash
+        id: main-sha
+        run: |
+          echo '::set-output name=SHA::$(git log -n 1 --pretty=format:"%H" refs/remotes/origin/main)'
+      - uses: hashicorp/setup-terraform@v1
+
+      - name: Get specific changed files
+        id: terraform-init-files
+        uses: tj-actions/changed-files@v16
+        with:
+          base_sha: ${{ steps.main-sha.outputs.SHA }}
+          files: |
+            terraform-init/*.tf
+
+      - name: Terraform Init fmt
+        id: fmt-init
+        if: steps.terraform-init-files.outputs.any_changed == 'true'
+        run: terraform fmt -check terraform-init/
+        continue-on-error: true
+      
+      - name: Terraform Init Init
+        id: init-init
+        if: steps.terraform-init-files.outputs.any_changed == 'true'
+        run: terraform -chdir=terraform-init/ init
+      
+      - name: Terraform Init Validate
+        id: validate-init
+        if: steps.terraform-init-files.outputs.any_changed == 'true'
+        run: terraform -chdir=terraform-init/ validate -no-color
+      
+      - name: Terraform Init Plan
+        id: plan-init
+        if: steps.terraform-init-files.outputs.any_changed == 'true'
+        run: terraform -chdir=terraform-init/ plan -no-color
+        continue-on-error: true
+      
+      - name: Get specific changed files
+        id: terraform-files
+        uses: tj-actions/changed-files@v16
+        with:
+          base_sha: ${{ steps.main-sha.outputs.SHA }}
+          files: |
+            terraform/*.tf
+
+      - name: Terraform fmt
+        id: fmt
+        if: steps.terraform-files.outputs.any_changed == 'true'
+        run: terraform fmt  -check terraform/
+        continue-on-error: true
+      
+      - name: Terraform Init
+        if: steps.terraform-files.outputs.any_changed == 'true'
+        id: init
+        run: terraform -chdir=terraform/ init
+      
+      - name: Terraform Validate
+        if: steps.terraform-files.outputs.any_changed == 'true'
+        id: validate
+        run: terraform -chdir=terraform/ validate -no-color
+      
+      - name: Terraform Plan
+        if: steps.terraform-files.outputs.any_changed == 'true'
+        id: plan
+        run: terraform -chdir=terraform/ plan -no-color
+        continue-on-error: true
+      
+      - uses: actions/github-script@v6
+        env:
+          PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
+        if: github.ref != 'refs/head/main' && steps.terraform-files.outputs.any_changed == 'true'
+        with:
+          script: |
+            const issues = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              head: `${context.repo.owner}:${context.ref.replace('refs/heads/', '')}`
+            })
+            
+            const pr = context.issue.number || issues.data[0].number
+
+            const output = `#### Terraform Format and Style 🖌\`${{ steps.fmt.outcome }}\`
+
+            <details><summary>Show Formatting</summary>
+            
+            \`\`\`\n
+            ${{ steps.fmt.outputs.stdout }}
+            \`\`\`
+            
+            </details>
+
+            #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
+            
+            <details><summary>Show Initialization</summary>
+            
+            \`\`\`\n
+            ${{ steps.init.outputs.stdout }}
+            \`\`\`
+            
+            </details>
+
+            #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
+            
+            <details><summary>Show Validation</summary>
+            
+            \`\`\`\n
+            ${{ steps.validate.outputs.stdout }}
+            \`\`\`
+            
+            </details>
+
+            #### Terraform Plan 📖\`${{ steps.plan.outcome }}\`
+            
+            <details><summary>Show Plan</summary>
+            
+            \`\`\`\n
+            ${process.env.PLAN}
+            \`\`\`
+            
+            </details>
+            
+            *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`, Working Directory: \`${{ env.tf_actions_working_dir }}\`, Workflow: \`${{ github.workflow }}\`*`;
+              
+            github.rest.issues.createComment({
+              issue_number: pr,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            })
+
+      - name: Report Terraform Init Status
+        if: steps.terraform-init-files.outputs.any_changed == 'true'
+        run: |
+          if [[ "${{steps.fmt-init.outcome}}" == "success" && "${{steps.init-init.outcome}}" == "success" && "${{steps.validate-init.outcome}}" == "success" && "${{steps.plan-init.outcome}}" == "success" ]]; then exit 0; else exit 1; fi
+
+      - name: Report Terraform Status
+        if: steps.terraform-files.outputs.any_changed == 'true'
+        run: |
+          if [[ "${{steps.fmt.outcome}}" == "success" && "${{steps.init.outcome}}" == "success" && "${{steps.validate.outcome}}" == "success" && "${{steps.plan.outcome}}" == "success" ]]; then exit 0; else exit 1; fi
+
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.terraform-files.outputs.any_changed == 'true'
+        run: terraform -chdir=terraform/ apply -auto-approve

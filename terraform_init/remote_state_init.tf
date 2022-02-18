@@ -309,7 +309,7 @@ resource "aws_s3_bucket" "replica" {
 
 resource "aws_s3_bucket_versioning" "replica" {
   provider = aws.remote_state_replica
-  bucket = aws_s3_bucket.replica.id
+  bucket   = aws_s3_bucket.replica.id
   versioning_configuration {
     status = "Enabled"
   }
@@ -317,7 +317,7 @@ resource "aws_s3_bucket_versioning" "replica" {
 
 resource "aws_s3_bucket_lifecycle_configuration" "replica" {
   provider = aws.remote_state_replica
-  bucket = aws_s3_bucket.replica.id
+  bucket   = aws_s3_bucket.replica.id
   rule {
     id     = "glacier"
     status = "Enabled"
@@ -329,7 +329,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "replica" {
 }
 
 resource "aws_s3_bucket_logging" "replica" {
-  provider = aws.remote_state_replica
+  provider      = aws.remote_state_replica
   bucket        = aws_s3_bucket.replica.id
   target_bucket = aws_s3_bucket.log_replica.id
   target_prefix = "tf-remote-state-replica-logs/"
@@ -337,7 +337,7 @@ resource "aws_s3_bucket_logging" "replica" {
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "replica" {
   provider = aws.remote_state_replica
-  bucket = aws_s3_bucket.replica.id
+  bucket   = aws_s3_bucket.replica.id
   rule {
     apply_server_side_encryption_by_default {
       sse_algorithm     = "aws:kms"
@@ -408,7 +408,7 @@ resource "aws_s3_bucket" "log_replica" {
 
 resource "aws_s3_bucket_versioning" "log_replica" {
   provider = aws.remote_state_replica
-  bucket = aws_s3_bucket.log_replica.id
+  bucket   = aws_s3_bucket.log_replica.id
   versioning_configuration {
     status = "Enabled"
   }
@@ -416,7 +416,7 @@ resource "aws_s3_bucket_versioning" "log_replica" {
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "log_replica" {
   provider = aws.remote_state_replica
-  bucket = aws_s3_bucket.log_replica.id
+  bucket   = aws_s3_bucket.log_replica.id
   rule {
     apply_server_side_encryption_by_default {
       sse_algorithm     = "aws:kms"
@@ -427,8 +427,8 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "log_replica" {
 
 resource "aws_s3_bucket_acl" "log_replica" {
   provider = aws.remote_state_replica
-  bucket = aws_s3_bucket.log_replica.id
-  acl    = "log-delivery-write"
+  bucket   = aws_s3_bucket.log_replica.id
+  acl      = "log-delivery-write"
 }
 
 resource "aws_s3_bucket_public_access_block" "log_replica" {
@@ -535,11 +535,11 @@ resource "aws_s3_bucket_public_access_block" "state" {
 }
 
 resource "aws_s3_object" "core_folder" {
-  bucket = aws_s3_bucket.state.id
-  acl = "private"
-  key = "core/"
+  bucket       = aws_s3_bucket.state.id
+  acl          = "private"
+  key          = "core/"
   content_type = "application/x-directory"
-  kms_key_id = aws_kms_key.this.arn
+  kms_key_id   = aws_kms_key.this.arn
 }
 
 output "backend_s3_bucket" {
