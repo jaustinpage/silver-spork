@@ -56,23 +56,18 @@ jobs:
           docker build --cache-from=silver-spark:latest --tag $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA --tag $ECR_REGISTRY/$ECR_REPOSITORY:latest -f services/server/Dockerfile dist/
           python3 scripts/upload_image_to_ecr.py --image silver-spork push
 
-          
-      - name: Deploy to kubernetes cluster
-        uses: kodermax/kubectl-aws-eks@master
+      - name: Setup kubernetes access
+        id: login-eks
         env:
-          KUBE_CONFIG_DATA: ${{  secrets.KUBECONFIG }}
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: silver-spork
           IMAGE_TAG: ${{ github.sha }}
-        with:
-          args: set image deployment/$ECR_REPOSITORY $ECR_REPOSITORY=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-      - name: verify deployment
-        uses: kodermax/kubectl-aws-eks@master
-        env:
-          KUBE_CONFIG_DATA: ${{ secrets.KUBECONFIG }}
-        with:
-          args: rollout status deployment/silver-spork
+        run: |
+          aws eks --region us-east-2 update-kubeconfig --name eg-test-eks-fargate-cluster
+          kubectl get svc
+          kubectl set image deployment/$ECR_REPOSITORY $ECR_REPOSITORY=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          kubectl rollout status deployment/silver-spork
+          
 
   py-platform-check:
     runs-on: ${{matrix.os}}
