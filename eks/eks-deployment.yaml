@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: silver-spork
+  namespace: silver-spork
+  labels:
+    app: silver-spork 
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: silver-spork
+  template:
+    metadata:
+      labels:
+        app: silver-spork
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.io/arch
+                operator: In
+                values:
+                - amd64
+                - arm64
+      containers:
+      - name: silver-spork
+        image: 825407915625.dkr.ecr.us-east-2.amazonaws.com/silver-spork:285e87fab3465f73c3e9719209a69fe2d7722585
+        ports:
+        - name: http
+          containerPort: 5000
+        imagePullPolicy: IfNotPresent
+      nodeSelector:
+        kubernetes.io/os: linux
