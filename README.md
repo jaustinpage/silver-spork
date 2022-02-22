@@ -19,6 +19,16 @@ A service that returns the current time and a message
 - Github account (for github actions and to clone the repo)
 - AWS account (for deploying the service)
 - optional: aws cli
+- optional: yq
+  ```shell
+  wget https://github.com/mikefarah/yq/releases/download/v4.2.0/yq_linux_amd64.tar.gz -O - |  tar xz && sudo mv yq_li
+nux_amd64 /usr/bin/yq
+  ```
+- optional: kubectl
+  ```shell
+  curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+  sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+  ```
 
 ## Getting Started
 
