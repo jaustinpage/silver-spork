@@ -45,16 +45,29 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Build, tag, and push image to Amazon ECR
+      - name: upload image dependencies
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: silver-spork
         run: |
           python3 -m pip install --upgrade arrow boto3 botocore click docker gitpython
+      - name: Build, tag, and push image to Amazon ECR
+        if: github.ref != 'refs/heads/main' 
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: silver-spork
+        run: |
           python3 scripts/upload_image_to_ecr.py --image silver-spork pull || true
           docker build --cache-from=silver-spark:latest --tag $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA --tag $ECR_REGISTRY/$ECR_REPOSITORY:latest -f services/server/Dockerfile dist/
           python3 scripts/upload_image_to_ecr.py --image silver-spork push
+
+      - name: tag and push image to Amazon ECR
+        if: github.ref == 'refs/heads/main' 
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: silver-spork
+        run: |
+          python3 scripts/upload_image_to_ecr.py --image silver-spork tag
 
       - name: Setup kubernetes access
         id: login-eks
@@ -65,8 +78,8 @@ jobs:
         run: |
           aws eks --region us-east-2 update-kubeconfig --name eg-test-eks-fargate-cluster
           kubectl get svc
-          kubectl set image deployment/$ECR_REPOSITORY $ECR_REPOSITORY=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          kubectl rollout status deployment/silver-spork
+          kubectl -n silver-spork set image deployment/$ECR_REPOSITORY $ECR_REPOSITORY=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          kubectl -n sliver-spork rollout status deployment/silver-spork
           
 
   py-platform-check:
