@@ -79,7 +79,7 @@ jobs:
           aws eks --region us-east-2 update-kubeconfig --name eg-test-eks-fargate-cluster
           kubectl get svc
           kubectl -n silver-spork set image deployment/$ECR_REPOSITORY $ECR_REPOSITORY=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          kubectl -n sliver-spork rollout status deployment/silver-spork
+          kubectl -n silver-spork rollout status deployment/silver-spork
           
 
   py-platform-check:
