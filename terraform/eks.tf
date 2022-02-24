@@ -93,6 +93,42 @@ module "ecr" {
   image_names            = ["silver-spork"]
 }
 
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+
+locals {
+  oidc_name = regex("(?:/)[0-9A-Z]*$", module.eks_cluster.eks_cluster_identity_oidc_issuer)
+}
+
+resource "aws_iam_role" "lb-role" {
+  name = "load-balancer-role-trust-policy"
+
+  assume_role_policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Federated": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/oidc.eks.${data.aws_region.current.name}.amazonaws.com/id/${local.oidc_name}"
+            },
+            "Action": "sts:AssumeRoleWithWebIdentity",
+            "Condition": {
+                "StringEquals": {
+                    "oidc.eks.${data.aws_region.current.name}.amazonaws.com/id/${local.oidc_name}:sub": "system:serviceaccount:kube-system:aws-load-balancer-controller"
+                }
+            }
+        }
+    ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "lb-attach" {
+  role       = aws_iam_role.lb-role.name
+  policy_arn = aws_iam_policy.lb_controller.arn
+}
+
 resource "aws_iam_policy" "lb_controller" {
   name        = "AWSLoadBalancerControllerIAMPolicy"
   path        = "/"
