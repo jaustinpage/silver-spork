@@ -223,6 +223,7 @@ class ECR(object):
 
         _, image = self.pull(tag=branch_commit.hexsha)
         self.push(tag=merge_commit.hexsha, image=image)
+        self.push(tag="latest", image=image)
 
 
 @click.group()
