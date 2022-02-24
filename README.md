@@ -29,6 +29,10 @@ nux_amd64 /usr/bin/yq
   curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
   sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
   ```
+- optional: helm
+  ```shell
+  curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  ```
 
 ## Getting Started
 
@@ -55,6 +59,14 @@ export FLASK_APP=silver_spork
 python3 -m flask run 
 ```
 
+## kubernetes commands
+```shell
+kubectl apply -f eks/eks-deployment.yaml
+kubectl apply -f eks/eks-service.yaml
+kubectl apply -f eks/aws-load-balancer-controller-service-account.yaml
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=eg-test-eks-fargate-cluster --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller --set region=us-east-2 --set vpcID=vpc-0dbaaab9d802cbc1c --set image.repository=825407915625.dkr.ecr.us-east-2.amazonaws.com/amazon/aws-load-balancer-controller
+
+```
 
 
 # LEGACY INSTRUCTIONS BELOW - IGNORE
