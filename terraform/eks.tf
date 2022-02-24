@@ -110,12 +110,12 @@ resource "aws_iam_role" "lb-role" {
         {
             "Effect": "Allow",
             "Principal": {
-                "Federated": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/oidc.eks.${data.aws_region.current.name}.amazonaws.com/id/${local.oidc_name}"
+                "Federated": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/oidc.eks.${data.aws_region.current.name}.amazonaws.com/id${local.oidc_name}"
             },
             "Action": "sts:AssumeRoleWithWebIdentity",
             "Condition": {
                 "StringEquals": {
-                    "oidc.eks.${data.aws_region.current.name}.amazonaws.com/id/${local.oidc_name}:sub": "system:serviceaccount:kube-system:aws-load-balancer-controller"
+                    "oidc.eks.${data.aws_region.current.name}.amazonaws.com/id${local.oidc_name}:sub": "system:serviceaccount:kube-system:aws-load-balancer-controller"
                 }
             }
         }
